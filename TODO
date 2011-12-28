@@ -1,0 +1,2 @@
+- Use a proper Download extension API when available
+- Find a proper way to calculate link rectangles (i.e. <img> inside <a>)

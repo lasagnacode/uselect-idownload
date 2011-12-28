@@ -1,0 +1,78 @@
+html {
+  font-family: sans-serif;
+  color: #222;
+  background-image: url(pattern.png);
+  min-height: 100%;
+}
+
+body {
+  width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.header {
+  width: 400px;
+  font-weight: bold;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+  padding: 50px 50px 0 50px;
+}
+
+.header > .logo {
+  float: left;
+  margin-right: 20px;
+}
+
+.header > .name {
+  font-size: 48px;
+}
+
+.header > .version {
+  clear: both;
+  text-align: center;
+  display: block;
+  padding-top: 20px;
+}
+
+h1 {
+  border-top: 1px solid white;
+  box-shadow: 0 -1px 0 #222;
+  padding-top: 15px;
+  margin-top: 30px;
+}
+
+.name, .version, h1 {
+  text-shadow: 1px 1px 0 white;
+}
+
+.version > a {
+  color: #555;
+  text-shadow: 0 0 0;
+}
+
+.footer {
+  margin-top: 30px;
+  border-top: 1px solid gray;
+  color: gray;
+  border-top: 1px solid white;
+  box-shadow: 0 -1px 0 #222;
+  padding-top: 15px;
+}
+
+.footer a {
+  color: #555;
+  text-decoration: underline;
+}
+
+label {
+  display: block;
+  margin: 5px;
+}
+
+fieldset {
+  border: 1px solid #666;
+  border-radius: 3px;
+  box-shadow: 1px 1px 0 white;
+}
