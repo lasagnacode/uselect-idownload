@@ -1,116 +1,149 @@
 /*
- * uSelect iDownload
+ * statemachine.js
+ * A simple state machine implementation for the Javascript programming
+ * language.
  *
  * Copyright © 2011 Alessandro Guido
  * Copyright © 2011 Marco Palumbo
  *
- * This file is part of uSelect iDownload.
- *
- * uSelect iDownload is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * uSelect iDownload is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with uSelect iDownload.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * StateMachine constructor.
+ *
+ * @constructor
+ */
 function StateMachine() {
-	this._states = {};
-	this._initialState = undefined;
-	this._current = null;
+	/**
+	 * Collection of possible states.
+	 *
+	 * @public
+	 * @type {Object[]}
+	 */
+	this.states = {};
+
+	/**
+	 * Easily access the current state object.
+	 *
+	 * There are 2 special values:
+	 * - undefined: the state machine has not been started
+	 * - null: the state machine has terminated
+	 *
+	 * @private
+	 * @type {Object}
+	 */
+	this._current = undefined;
 }
 
-StateMachine.prototype.addState = function (state) {
-	this._states[state._name] = state;
-}
+/**
+ * Handlers in the form "__*__" have a special meaning and
+ * cannot be fired with StateMachine.fireEvent()
+ *
+ * @private
+ */
+StateMachine._restricted_event = /^__.*__$/;
 
-StateMachine.prototype._fireEvent = function (self, name, args) {
-	if (self._current == null)
-		throw "State machine not started or already terminated";
+/**
+ * Start the state machine.
+ *
+ * @this {StateMachine}
+ * @param {string} initialState Name of initial state.
+ */
+StateMachine.prototype.start = function (initialState) {
+	if (this._current !== undefined)
+		throw 'State machine already started';
+	if (initialState === undefined || initialState === null)
+		throw 'Please give a valid state name';
 
-	var state = self._states[self._current];
+	setTimeout(StateMachine._changeState, 0, this, initialState);
+};
 
-	var ret = state.fireEvent(name, args);
+/**
+ * Signal that an event has occurred.
+ *
+ * @this {StateMachine}
+ * @param {string} name Event name.
+ * @param arg Event argument (optional).
+ * @throws If state machine is not running or when firing a restricted event.
+ */
+StateMachine.prototype.fireEvent = function (name, arg) {
+	if (this._current === undefined)
+		throw 'State machine not started';
+	if (this._current === null)
+		throw 'State machine terminated';
+	if (StateMachine._restricted_event.test(name))
+		throw 'Firing event "' + name + '" is not allowed';
 
-	if (ret === undefined) // state unchanged
+	setTimeout(StateMachine._handleEvent, 0, this, name, arg);
+};
+
+/**
+ * Exit from the current state (if defined) and enter the next one.
+ * Should be called with asynchronously.
+ *
+ * @private
+ * @param {StateMachine} self StateMachine instance.
+ * @param {string|null} newstate Name of the state.
+ */
+StateMachine._changeState = function (self, newstate) {
+	if (newstate !== null && !self.states.hasOwnProperty(newstate)) {
+		self._current = null;
+		throw 'No such state "' + newstate + '"';
+	}
+
+	var curr = self._current;
+
+	if (curr !== undefined && curr.hasOwnProperty('__exit__')) {
+		/* this._current is undefined only when the state machine has
+		 * just been started */
+		curr.__exit__.apply(self);
+	}
+
+	if (newstate === null) {
+		/* state machine will terminate */
+		self._current = null;
 		return;
-	state.exit();
+	}
 
-	self._current = ret;
-	if (ret === null) // exit from statemachine
+	curr = self._current = self.states[newstate];
+
+	if (!curr.hasOwnProperty('__enter__'))
 		return;
 
-	if (!self._states.hasOwnProperty(ret))
-		throw "unknown state " + ret;
-	self._states[ret].enter();
-}
+	var next = curr.__enter__.apply(self);
+	if (next !== undefined)
+		setTimeout(StateMachine._changeState, 0, self, next);
+};
 
-StateMachine.prototype.fireEvent = function (name, args) {
-	setTimeout(this._fireEvent, 0, this, name, args);
-}
+/**
+ * Execute the event handler and if needed schedule a state change.
+ * Should be called asynchronously.
+ *
+ * @private
+ * @param {StateMachine} self StateMachine instance.
+ * @param {string} name Name of event.
+ * @param arg Event argument.
+ */
+StateMachine._handleEvent = function (self, name, arg) {
+	var next = self._current[name];
 
-StateMachine.prototype.setInitialState = function (state) {
-	this._initialState = state;
-}
+	if (typeof next == 'function')
+		next = next.apply(self, arg);
 
-StateMachine.prototype.start = function () {
-	if (this._initialState == undefined)
-		throw "initial state unset";
-	this._current = this._initialState;
-	setTimeout(function (self) {
-		self._states[self._current].enter();
-	}, 0, this);
-}
+	if (next === undefined) // state unchanged
+		return;
 
-StateMachine.prototype.current = function () {
-	return this._current;
-}
-
-StateMachine.prototype.finished = function () {
-    return this.current() == null;
-}
-
-
-function State(name) {
-	this._name = name;
-	this._enter = null;
-	this._exit = null;
-	this._events = {};
-}
-
-State.prototype.setEnter = function (fun) {
-	this._enter = fun;
-}
-
-State.prototype.setExit = function (fun) {
-	this._exit = fun;
-}
-
-State.prototype.enter = function () {
-	if (this._enter)
-		this._enter();
-}
-
-State.prototype.exit = function () {
-	if (this._exit)
-		this._exit();
-}
-
-State.prototype.addEvent = function (name, handler) {
-	this._events[name] = handler;
-}
-
-State.prototype.fireEvent = function (name, args) {
-	if (!this._events.hasOwnProperty(name))
-		return undefined;
-	var handler = this._events[name];
-	if (typeof handler == 'function')
-		return handler(args);
-	return handler;
-}
+	setTimeout(StateMachine._changeState, 0, self, next);
+};

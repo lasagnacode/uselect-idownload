@@ -226,82 +226,79 @@ function Overlay() {
 	document.body.addEventListener('mouseup', handlers.mouseup, true);
 
 	var statemachine = new StateMachine();
-	var state;
-
 /******************************************************************************/
-	state = new State('load');
+	statemachine.states['load'] = {
+		__enter__: function () {
+			document.documentElement.classList.add(CSS.classes.loading);
+			document.body.appendChild(overlay);
+			document.body.appendChild(glass);
+			document.body.appendChild(helpDiv);
 
-	state.setEnter(function () {
-		document.documentElement.classList.add(CSS.classes.loading);
-		document.body.appendChild(overlay);
-		document.body.appendChild(glass);
-		document.body.appendChild(helpDiv);
+			overlay.addEventListener('webkitTransitionEnd', function () {
+				overlay.removeEventListener('webkitTransitionEnd', arguments.callee);
+				that.sm.fireEvent('load_done');
+			});
 
-		overlay.addEventListener('webkitTransitionEnd', function () {
-			overlay.removeEventListener('webkitTransitionEnd', arguments.callee);
-			that.sm.fireEvent('load_done');
-		});
+			/*
+			 * We have to let the DOM to notice that the element has been added
+			 * before adding the class, otherwise the transition does not kick
+			 * in (the div is loaded already with opacity = 1)
+			 */
+			setTimeout(function () {
+				that.populate();
+				that.updateVisibleElements();
+				document.documentElement.classList.remove(CSS.classes.loading);
+			}, 0);
+		},
 
-		/*
-		 * We have to let the DOM to notice that the element has been added
-		 * before adding the class, otherwise the transition does not kick
-		 * in (the div is loaded already with opacity = 1)
-		 */
-		setTimeout(function () {
-			that.populate();
-			that.updateVisibleElements();
-			document.documentElement.classList.remove(CSS.classes.loading);
-		}, 0);
-	});
-
-	state.addEvent('load_done', 'idle');
-
-	statemachine.addState(state);
+		load_done: 'idle',
+	};
 /******************************************************************************/
-	state = new State('exit');
+	statemachine.states['exit'] = {
+		__enter__: function () {
+			document.removeEventListener('mousemove', handlers.mousemove);
+			document.removeEventListener('scroll', handlers.scroll);
+			window.removeEventListener('resize', handlers.resize);
+			document.removeEventListener('contextmenu', handlers.contextmenu);
 
-	state.setEnter(function () {
-		document.removeEventListener('mousemove', handlers.mousemove);
-		document.removeEventListener('scroll', handlers.scroll);
-		window.removeEventListener('resize', handlers.resize);
-		document.removeEventListener('contextmenu', handlers.contextmenu);
+			document.removeEventListener('keydown', handlers.keydown, true);
+			document.removeEventListener('keyup', handlers.keyup, true);
 
-		document.removeEventListener('keydown', handlers.keydown, true);
-		document.removeEventListener('keyup', handlers.keyup, true);
+			document.body.removeEventListener('mousedown', handlers.mousedown, true);
+			document.body.removeEventListener('mouseup', handlers.mouseup, true);
 
-		document.body.removeEventListener('mousedown', handlers.mousedown, true);
-		document.body.removeEventListener('mouseup', handlers.mouseup, true);
+			that._selectableElements.forEach(function (el) {
+				el._private.delegate.classList.remove(CSS.classes.selected);
+				el._private.delegate.classList.remove(CSS.classes.relative);
+				delete el._private;
+			});
 
-		that._selectableElements.forEach(function (el) {
-			el._private.delegate.classList.remove(CSS.classes.selected);
-			el._private.delegate.classList.remove(CSS.classes.relative);
-			delete el._private;
-		});
+			overlay.addEventListener('webkitTransitionEnd', function () {
+				overlay.removeEventListener('webkitTransitionEnd', arguments.callee);
+				document.body.removeChild(helpDiv);
+				document.body.removeChild(glass);
+				document.body.removeChild(overlay);
+				document.documentElement.classList.remove(CSS.classes.exiting);
+				that.sm.fireEvent('exit_done');
+			});
+			document.documentElement.classList.add(CSS.classes.exiting);
+		},
 
-		overlay.addEventListener('webkitTransitionEnd', function () {
-			overlay.removeEventListener('webkitTransitionEnd', arguments.callee);
-			document.body.removeChild(helpDiv);
-			document.body.removeChild(glass);
-			document.body.removeChild(overlay);
-			document.documentElement.classList.remove(CSS.classes.exiting);
-			that.sm.fireEvent('exit_done');
-		});
-		document.documentElement.classList.add(CSS.classes.exiting);
-	});
+		__exit__: function () {
+			delete Overlay.instance;
+		},
 
-	state.addEvent('exit_done', null);
-	statemachine.addState(state);
+		exit_done: null,
+	};
 /******************************************************************************/
-	state = new State('idle');
-
-	state.addEvent('mousedown', 'selection');
-	state.addEvent('alt_mousedown', 'deselection');
-	state.addEvent('req_exit', 'exit');
-	state.addEvent('req_open', 'open');
-	state.addEvent('req_download', 'download');
-	state.addEvent('hide_key_down', 'hidden');
-
-	statemachine.addState(state);
+	statemachine.states['idle'] = {
+		mousedown: 'selection',
+		alt_mousedown: 'deselection',
+		req_exit: 'exit',
+		req_open: 'open',
+		req_download: 'download',
+		hide_key_down: 'hidden',
+	};
 /******************************************************************************/
 	var redrawInterval = null;
 	var recalcInterval = null;
@@ -369,80 +366,69 @@ function Overlay() {
 		r.h = Math.abs(p0.y - p1.y);
 	};
 
-	state = new State('selection');
+	statemachine.states['selection'] = {
+		__enter__: function () {
+			that._invertedSelection = false;
+			selection_common_in();
+		},
 
-	state.setEnter(function () {
-		that._invertedSelection = false;
-		selection_common_in();
-	});
+		mousemove: selection_common_mousemove,
+		mouseup: selection_common_out,
+		req_exit: 'exit',
+	};
 
-	state.addEvent('mousemove', selection_common_mousemove);
-	state.addEvent('mouseup', selection_common_out);
-	state.addEvent('req_exit', 'exit');
+	statemachine.states['deselection'] = {
+		__enter__: function () {
+			that._invertedSelection = true;
+			selection_common_in();
+		},
 
-	statemachine.addState(state);
-
-	state = new State('deselection');
-
-	state.setEnter(function () {
-		that._invertedSelection = true;
-		selection_common_in();
-	});
-
-	state.addEvent('mousemove', selection_common_mousemove);
-	state.addEvent('alt_mouseup', selection_common_out);
-	state.addEvent('req_exit', 'exit');
-
-	statemachine.addState(state);
+		mousemove: selection_common_mousemove,
+		mouseup: selection_common_out,
+		req_exit: 'exit',
+	};
 /******************************************************************************/
-	state = new State('open');
+	statemachine.states['open'] = {
+		__enter__: function () {
+			clickElements(that._selectableElements.filter(function (el) {
+				return el._private.selected;
+			}), false);
+			that.sm.fireEvent('done');
+		},
 
-	state.setEnter(function () {
-		clickElements(that._selectableElements.filter(function (el) {
-			return el._private.selected;
-		}), false);
-		that.sm.fireEvent('done');
-	});
-
-	state.addEvent('done', 'exit');
-
-	statemachine.addState(state);
+		done: 'exit',
+	};
 /******************************************************************************/
-	state = new State('download');
+	statemachine.states['download'] = {
+		__enter__: function () {
+			clickElements(that._selectableElements.filter(function (el) {
+				return el._private.selected;
+			}), true);
+			that.sm.fireEvent('done');
+		},
 
-	state.setEnter(function () {
-		clickElements(that._selectableElements.filter(function (el) {
-			return el._private.selected;
-		}), true);
-		that.sm.fireEvent('done');
-	});
-
-	state.addEvent('done', 'exit');
-
-	statemachine.addState(state);
+		done: 'exit',
+	};
 /******************************************************************************/
-	state = new State('hidden');
+	statemachine.states['hidden'] = {
+		__enter__: function () {
+			document.documentElement.classList.add(CSS.classes.hidden);
+		},
 
-	state.setEnter(function () {
-		document.documentElement.classList.add(CSS.classes.hidden);
-	});
+		__exit__: function () {
+			document.documentElement.classList.remove(CSS.classes.hidden);
+			that.updateVisibleElements();
+		},
 
-	state.setExit(function () {
-		document.documentElement.classList.remove(CSS.classes.hidden);
-		that.updateVisibleElements();
-	});
-
-	state.addEvent('hide_key_up', 'idle');
-	state.addEvent('req_exit', 'exit');
-
-	statemachine.addState(state);
+		hide_key_up: 'idle',
+		req_exit: 'exit',
+	};
 /******************************************************************************/
-	statemachine.setInitialState('load');
 	this.sm = statemachine;
 }
 
 Overlay.prototype.show = function () {
-	this.sm.start();
+	this.sm.start('load');
 }
 
 Overlay.prototype.destroy = function () {
