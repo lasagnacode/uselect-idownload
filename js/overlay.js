@@ -384,7 +384,7 @@ function Overlay() {
 		},
 
 		mousemove: selection_common_mousemove,
-		mouseup: selection_common_out,
+		alt_mouseup: selection_common_out,
 		req_exit: 'exit',
 	};
 /******************************************************************************/
