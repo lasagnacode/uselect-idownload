@@ -2,17 +2,12 @@
 # encoding: utf-8
 
 import argparse
-from contextlib import closing
 import glob
 import json
 import os
 from os import path
 from subprocess import Popen, PIPE, check_call, check_output
 import tempfile
-from urllib import urlencode
-from urllib2 import urlopen
-
-CLOSURE_URL = 'http://closure-compiler.appspot.com/compile'
 
 def out(type, file):
 	print '{:>8s} {}'.format(type, file)
