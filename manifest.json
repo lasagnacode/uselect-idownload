@@ -21,7 +21,7 @@
     {
       "matches": ["<all_urls>"],
       "css": ["overlay.css"],
-      "js": ["js/shortcut.js", "js/shortcut_handler.js", "js/statemachine.js", "js/defs.js", "js/overlay.js", "js/main.js"]
+      "js": ["js/shortcut.js", "js/shortcut_handler.js", "js/statemachine.js", "js/defs.js", "js/overlay.js"]
     }
   ],
   "default_locale": "en",

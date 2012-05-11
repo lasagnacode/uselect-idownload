@@ -20,14 +20,11 @@
  * along with uSelect iDownload.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-function browserActionClicked() {
-	if (Overlay.instance === undefined) {
-		var o = new Overlay();
-		Overlay.instance = o;
-		o.show();
-	} else {
-		Overlay.instance.destroy();
-		/* Overlay.instance deletion happens in overlay.js */
-	}
+var obj = window._uselectidownload;
+if (obj === undefined) {
+	var obj = new Overlay();
+	window._uselectidownload = obj;
+	obj.show();
+} else {
+	obj.destroy(); // deletion happens in overlay.js
 }
-

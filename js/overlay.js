@@ -285,7 +285,7 @@ function Overlay() {
 		},
 
 		__exit__: function () {
-			delete Overlay.instance;
+			delete window._uselectidownload;
 		},
 
 		exit_done: null,
