@@ -21,7 +21,7 @@
  */
 
 function executeExtension(idtab) {
-	chrome.tabs.executeScript(idtab, {code: 'browserActionClicked()'});
+	chrome.tabs.executeScript(idtab, {file: 'js/main.js'});
 }
 
 chrome.extension.onRequest.addListener(function (request, sender, sendResponse) {
