@@ -20,6 +20,26 @@
  * along with uSelect iDownload.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+CSS = {
+	ids: {
+		glass:      'ileabdhfjmgaognikmjgmhhkjffggejc-glass',
+		help:       'ileabdhfjmgaognikmjgmhhkjffggejc-help',
+		overlay:    'ileabdhfjmgaognikmjgmhhkjffggejc-overlay'
+	},
+
+	classes: {
+		closing:      'ileabdhfjmgaognikmjgmhhkjffggejc-closing',
+		exiting:      'ileabdhfjmgaognikmjgmhhkjffggejc-exiting',
+		hidden:       'ileabdhfjmgaognikmjgmhhkjffggejc-hidden',
+		inverted:     'ileabdhfjmgaognikmjgmhhkjffggejc-inverted',
+		invisible:    'ileabdhfjmgaognikmjgmhhkjffggejc-invisible',
+		loading:      'ileabdhfjmgaognikmjgmhhkjffggejc-loading',
+		relative:     'ileabdhfjmgaognikmjgmhhkjffggejc-relative',
+		selected:     'ileabdhfjmgaognikmjgmhhkjffggejc-selected',
+		selectionRectangle: 'ileabdhfjmgaognikmjgmhhkjffggejc-selection-rectangle'
+	}
+};
+
 function Overlay() {
 	this._invertedSelection = false; // remove element from selection if true
 
@@ -427,14 +447,6 @@ function Overlay() {
 	this.sm = statemachine;
 }
 
-Overlay.prototype.show = function () {
-	this.sm.start('load');
-}
-
-Overlay.prototype.destroy = function () {
-	this.sm.fireEvent('req_exit');
-}
-
 Overlay.prototype.populate = function () {
 	var seq = document.links;
 	var javascript_re = /^javascript:/;
@@ -583,3 +595,14 @@ function clickElements(elements, download) {
 		el.dispatchEvent(ev);
 	});
 }
+
+chrome.extension.onRequest.addListener(function (request, sender, sendResponse) {
+	if (request != 'toggle')
+		return;
+	if (window._uselectidownload === undefined) {
+		window._uselectidownload = new Overlay();
+		window._uselectidownload.sm.start('load');
+	} else {
+		window._uselectidownload.sm.fireEvent('req_exit');
+	}
+});

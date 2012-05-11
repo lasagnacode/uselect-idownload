@@ -20,8 +20,20 @@
  * along with uSelect iDownload.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* keep track of tabs that have already loaded extension files */
+var mytabs = {};
+
 function executeExtension(idtab) {
-	chrome.tabs.executeScript(idtab, {file: 'js/main.js'});
+	if (!mytabs.hasOwnProperty(idtab)) {
+		chrome.tabs.executeScript(idtab, {file: 'js/statemachine.js'}, function () {
+			chrome.tabs.executeScript(idtab, {file: 'js/overlay.js'}, function () {
+				mytabs[idtab] = true;
+				chrome.tabs.sendRequest(idtab, 'toggle');
+			});
+		});
+	} else {
+		chrome.tabs.sendRequest(idtab, 'toggle');
+	}
 }
 
 chrome.extension.onRequest.addListener(function (request, sender, sendResponse) {
