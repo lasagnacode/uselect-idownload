@@ -165,8 +165,10 @@ function Overlay() {
 			case 13: // Enter
 				if (e.altKey)
 					that.sm.fireEvent('req_download');
+				else if (e.shiftKey)
+					that.sm.fireEvent('req_window');
 				else
-					that.sm.fireEvent('req_open');
+					that.sm.fireEvent('req_tabs');
 				break;
 			case that._hideKeyCode:
 				that.sm.fireEvent('hide_key_down');
@@ -315,8 +317,9 @@ function Overlay() {
 		mousedown: 'selection',
 		alt_mousedown: 'deselection',
 		req_exit: 'exit',
-		req_open: 'open',
-		req_download: 'download',
+		req_tabs: 'action-tabs',
+		req_window: 'action-window',
+		req_download: 'action-download',
 		hide_key_down: 'hidden',
 	};
 /******************************************************************************/
@@ -408,22 +411,42 @@ function Overlay() {
 		req_exit: 'exit',
 	};
 /******************************************************************************/
-	statemachine.states['open'] = {
+	statemachine.states['action-tabs'] = {
 		__enter__: function () {
-			clickElements(that._selectableElements.filter(function (el) {
-				return el._private.selected;
-			}), false);
+			var urls = selectedElementUrls(that._selectableElements);
+			chrome.extension.sendRequest({
+				'__req__'  : 'action',
+				'action': 'tabs',
+				'urls'  : urls,
+			});
 			that.sm.fireEvent('done');
 		},
 
 		done: 'exit',
 	};
 /******************************************************************************/
-	statemachine.states['download'] = {
+	statemachine.states['action-window'] = {
 		__enter__: function () {
-			clickElements(that._selectableElements.filter(function (el) {
-				return el._private.selected;
-			}), true);
+			var urls = selectedElementUrls(that._selectableElements);
+			chrome.extension.sendRequest({
+				'__req__'  : 'action',
+				'action': 'window',
+				'urls'  : urls,
+			});
+			that.sm.fireEvent('done');
+		},
+
+		done: 'exit',
+	};
+/******************************************************************************/
+	statemachine.states['action-download'] = {
+		__enter__: function () {
+			var urls = selectedElementUrls(that._selectableElements);
+			chrome.extension.sendRequest({
+				'__req__'  : 'action',
+				'action': 'download',
+				'urls'  : urls,
+			});
 			that.sm.fireEvent('done');
 		},
 
@@ -558,42 +581,13 @@ function intersects(clientRect, rect) {
 	return true;
 }
 
-function clickElements(elements, download) {
-	var altKey = download;
-	var button = download ? 0 : 1; // use middle button to open in new tab
-	elements.sort(function (a, b) {
-		return a.href > b.href ? 1 : (a.href < b.href ? -1 : 0);
-	});
-
-	var last = null;
-	elements = elements.filter(function (el) {
-		if (el.href == last)
-			return false;
-		last = el.href;
-		return true;
-	});
-
+function selectedElementUrls(elements) {
+	var tmp = {};
 	elements.forEach(function (el) {
-		if (!el._private.selected)
-			return;
-		var ev = document.createEvent('MouseEvents');
-		ev.initMouseEvent('click', // type
-		                  false, // canBubble
-		                  false, // cancelable
-		                  window, // view
-		                  1, // detail (number of clicks)
-		                  0, // screenX
-		                  0, // screenY
-		                  0, // clientX
-		                  0, // clientY
-		                  false, // ctrlKey
-		                  altKey, // altKey
-		                  false, // shiftKey
-		                  false, // metaKey
-		                  button, // button
-		                  null); // relatedTarget
-		el.dispatchEvent(ev);
+		if (el._private.selected)
+			tmp[el.href] = null;
 	});
+	return Object.keys(tmp);
 }
 
 chrome.extension.onRequest.addListener(function (request, sender, sendResponse) {

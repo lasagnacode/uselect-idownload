@@ -23,27 +23,46 @@
 /* keep track of tabs that have already loaded extension files */
 var mytabs = {};
 
-function executeExtension(idtab) {
-	if (!mytabs.hasOwnProperty(idtab)) {
-		chrome.tabs.executeScript(idtab, {file: 'js/statemachine.js'}, function () {
-			chrome.tabs.executeScript(idtab, {file: 'js/overlay.js'}, function () {
-				mytabs[idtab] = true;
-				chrome.tabs.sendRequest(idtab, 'toggle');
-			});
-		});
-	} else {
-		chrome.tabs.sendRequest(idtab, 'toggle');
-	}
-}
-
-chrome.extension.onRequest.addListener(function (request, sender, sendResponse) {
-	var reqtype = request['type'];
-
-	if (reqtype == 'open_urls') {
+var requestHandlers = {
+	'action': function (request, sender, sendResponse) {
 		var urls = request['urls'];
-		for (var i in urls)
-			chrome.tabs.create({'url': urls[i], 'selected': false});
-	} else if (reqtype == 'get_shortcut') {
+		var action = request['action'];
+		var tabId = request['tabId'];
+
+		if (action == 'window') {
+			/*
+			 * TODO:
+			 * - incognito window
+			 * - selected
+			 */
+			chrome.windows.create({'url': urls});
+		} else {
+			if (action == 'download')
+				chrome.tabs.create({
+					'url': 'chrome://downloads',
+					'selected': true,
+					'openerTabId': sender.tab.id,
+				});
+			urls.forEach(function (url) {
+				switch (action) {
+				case 'tabs':
+					chrome.tabs.create({
+						'url': url,
+						'selected': false,
+						'openerTabId': sender.tab.id,
+					});
+					break;
+				case 'download':
+					chrome.experimental.downloads.download({
+						'url': url,
+					});
+					break;
+				}
+			});
+		}
+	},
+
+	'get-shortcut': function (request, sender, sendResponse) {
 		var data = null;
 		try {
 			var settings = JSON.parse(localStorage['settings']);
@@ -53,11 +72,32 @@ chrome.extension.onRequest.addListener(function (request, sender, sendResponse) 
 			/* void */
 		}
 		sendResponse(data);
-	} else if (reqtype == 'execute_extension') {
-		executeExtension(request['tabid']);
-	}
+	},
+
+	'toggle-extension': function (request, sender, sendResponse) {
+		var idtab = request['idtab'];
+		if (idtab == null)
+			idtab = sender.tab.id;
+		if (!mytabs.hasOwnProperty(idtab)) {
+			chrome.tabs.executeScript(idtab, {file: 'js/statemachine.js'}, function () {
+				chrome.tabs.executeScript(idtab, {file: 'js/overlay.js'}, function () {
+					mytabs[idtab] = true;
+					chrome.tabs.sendRequest(idtab, 'toggle');
+				});
+			});
+		} else {
+			chrome.tabs.sendRequest(idtab, 'toggle');
+		}
+	},
+};
+
+/**
+ * Demultiplex requests using the '__req__' property of the request object
+ */
+chrome.extension.onRequest.addListener(function (request, sender, sendResponse) {
+	requestHandlers[request['__req__']](request, sender, sendResponse);
 });
 
 chrome.browserAction.onClicked.addListener(function (tab) {
-	executeExtension(tab.id);
+	requestHandlers['toggle-extension']({'idtab': tab.id}, null, null);
 });

@@ -27,6 +27,6 @@
   "default_locale": "en",
   "options_page": "options.html",
   "permissions": [
-    "<all_urls>", "tabs"
+    "<all_urls>", "tabs", "experimental"
   ]
 }

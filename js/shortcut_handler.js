@@ -20,7 +20,7 @@
  * along with uSelect iDownload.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-chrome.extension.sendRequest({'type': 'get_shortcut'}, function (data) {
+chrome.extension.sendRequest({'__req__': 'get-shortcut'}, function (data) {
 	if (data === null)
 		return;
 
@@ -28,10 +28,7 @@ chrome.extension.sendRequest({'type': 'get_shortcut'}, function (data) {
 
 	window.addEventListener('keydown', function (e) {
 		if (shortcut.matches(e)) {
-			chrome.extension.sendRequest({
-				'type': 'execute_extension',
-				'tabid': null
-			});
+			chrome.extension.sendRequest({'__req__': 'toggle-extension'});
 			/* if the user has used a shortcut defined by the browser
 			   (i.e. Ctrl+A) we have to stop the browser to execute the relative
 			   action */

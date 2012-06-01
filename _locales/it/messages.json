@@ -1,5 +1,5 @@
 {
   "extDesc": {"message": "Apri o scarica molteplici link tramite una semplice selezione."},
   "actionTitle": {"message": "Seleziona i link"},
-  "usage":   {"message": "Seleziona i link disegnando rettangoli (click sinistro per selezionare, click destro per deselezionare).<br/>È possibile nascondere temporaneamente l'overlay per scrollare la pagina premendo il tasto <strong>H</strong>.<br/>Premere <strong>Invio</strong> per aprirli in schede or <strong>Alt+Invio</strong> per scaricarli."}
+  "usage":   {"message": "Seleziona i link disegnando rettangoli (click sinistro per selezionare, click destro per deselezionare).<br/>È possibile nascondere temporaneamente l'overlay per scrollare la pagina premendo il tasto <strong>H</strong>.<br/>Premere <strong>Invio</strong> per aprirli nella finestra corrente, <strong>Shift+Invio</strong> per aprirli in una nuova finestra o <strong>Alt+Invio</strong> per scaricarli."}
 }
