@@ -1,8 +1,8 @@
 /*
  * uSelect iDownload
  *
- * Copyright © 2011 Alessandro Guido
- * Copyright © 2011 Marco Palumbo
+ * Copyright © 2011-2012 Alessandro Guido
+ * Copyright © 2011-2012 Marco Palumbo
  *
  * This file is part of uSelect iDownload.
  *
@@ -20,20 +20,56 @@
  * along with uSelect iDownload.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-chrome.extension.sendRequest({'__req__': 'get-shortcut'}, function (data) {
-	if (data === null)
+(function () {
+
+var shortcut = new Shortcut();
+var handler_installed = false;
+
+function storage_changed(changes, namespace) {
+	if (namespace != 'sync' || !changes.hasOwnProperty('shortcut'))
 		return;
 
-	var shortcut = new Shortcut(data);
+	shortcut.set(changes['shortcut'].newValue);
+	if (shortcut.isEmpty() && handler_installed) {
+		window.removeEventListener('keydown', shortcut_handler, true);
+		handler_installed = false;
+		return;
+	}
 
-	window.addEventListener('keydown', function (e) {
-		if (shortcut.matches(e)) {
-			chrome.extension.sendRequest({'__req__': 'toggle-extension'});
-			/* if the user has used a shortcut defined by the browser
-			   (i.e. Ctrl+A) we have to stop the browser to execute the relative
-			   action */
-			e.preventDefault();
-			e.stopPropagation();
-		}
-	}, true);
+	if (!handler_installed) {
+		window.addEventListener('keydown', shortcut_handler, true);
+		handler_installed = true;
+	}
+}
+
+/*
+ * When the event handler is added it is called for every keydown event, which
+ * might slow the browser. To optimize we don't add the event handler if the
+ * shortcut is not set.
+ */
+function shortcut_handler(e) {
+	if (shortcut.isEmpty()) {
+		console.log('EPIC FAILURE: This should not happen!');
+		return;
+	}
+	if (shortcut.matches(e)) {
+		chrome.extension.sendRequest({'__req__': 'toggle-extension'});
+		/* if the user has used a shortcut defined by the browser
+		   (i.e. Ctrl+A) we have to stop the browser to execute the relative
+		   action */
+		e.preventDefault();
+		e.stopPropagation();
+	}
+}
+
+chrome.storage.onChanged.addListener(storage_changed);
+chrome.storage.sync.get('shortcut', function (items) {
+
+	shortcut.set(items['shortcut']);
+	if (!shortcut.isEmpty()) {
+		window.addEventListener('keydown', shortcut_handler, true);
+		handler_installed = true;
+	}
 });
+
+})();

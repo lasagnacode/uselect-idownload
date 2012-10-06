@@ -5,57 +5,7 @@
     <title>uSelect iDownload - Options</title>
     <link rel="stylesheet" type="text/css" href="res/admin-page.css">
     <script type="text/javascript" src="/js/shortcut.js"></script>
-    <script type="text/javascript">
-    var shortcut = new Shortcut();
-    var grabEnabled = false;
-
-    function saveSettings(form) {
-      var settings = {};
-      settings['shortcut_enable'] = form.shortcut_enable.checked;
-      settings['shortcut'] = shortcut._data;
-      localStorage['settings'] = JSON.stringify(settings);
-    }
-
-    document.addEventListener('DOMContentLoaded', function (e) {
-      var form = document.forms.sc_form;
-      try {
-        var settings = JSON.parse(localStorage['settings']);
-        form.shortcut_enable.checked = settings['shortcut_enable'];
-        shortcut.set(settings['shortcut']);
-        form.shortcut.value = shortcut.toString();
-      } catch (x) {
-        console.log(x);
-        form.shortcut.value = 'Click to set the shortcut';
-      }
-
-      form.addEventListener('change', function () {
-        saveSettings(form);
-      });
-
-      document.addEventListener('keydown', function (e) {
-        /* we prevent the default action to take place if someone wants to
-           override some browser action activated by the same shortcut */
-        if (!grabEnabled)
-          return;
-        for (var m in modifiers) {
-          if (m == e.keyIdentifier) {
-            e.preventDefault();
-            return;
-          }
-        }
-        shortcut.set(e);
-        form.shortcut.value = shortcut.toString();
-        grabEnabled = false;
-        saveSettings(form);
-        e.preventDefault();
-      }, true);
-
-      form.shortcut.addEventListener('click', function () {
-        this.value = 'Set shortcut...';
-        grabEnabled = true;
-      });
-    });
-    </script>
+    <script type="text/javascript" src="/js/options.js"></script>
   </head>
   <body>
     <div class="header">
@@ -65,11 +15,7 @@
     </div>
     <h1>Settings</h1>
     <form id="sc_form">
-      <fieldset>
-        <legend>Keyboard shortcut</legend>
-        <label><input type="checkbox" name="shortcut_enable"/>Enable shortcut</label>
-        <label>Shortcut:<input type="button" name="shortcut"/></label>
-      </fieldset>
+      <label>Keyboard Shortcut:<button type="button" name="shortcut"><i>Loading...</i></button></label><button type="button" name="shortcut_clear"><img src="res/clear.png"></button>
     </form>
     <div class="footer">
       Please, report bugs and suggestions to <a href="mailto:lasagnacode@gmail.com">lasagnacode@gmail.com</a>.

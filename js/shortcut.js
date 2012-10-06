@@ -1,8 +1,8 @@
 /*
  * uSelect iDownload
  *
- * Copyright © 2011 Alessandro Guido
- * Copyright © 2011 Marco Palumbo
+ * Copyright © 2011-2012 Alessandro Guido
+ * Copyright © 2011-2012 Marco Palumbo
  *
  * This file is part of uSelect iDownload.
  *
@@ -53,9 +53,24 @@ Shortcut.prototype.matches = function (e) {
 	return true;
 }
 
+Shortcut.prototype.clear = function () {
+	for (var f in fields) {
+		this._data[f] = undefined;
+	}
+}
+
+Shortcut.prototype.isEmpty = function () {
+	for (var f in fields)
+		if (this._data[f] != null)
+			return false;
+	return true;
+}
+
 Shortcut.prototype.set = function (e) {
-	if (e === undefined || e === null)
+	if (e === undefined || e === null) {
+		this.clear();
 		return;
+	}
 	for (var f in fields) {
 		if (!e.hasOwnProperty(f))
 			continue;
@@ -64,7 +79,11 @@ Shortcut.prototype.set = function (e) {
 }
 
 Shortcut.prototype.toString = function () {
+	if (this.isEmpty())
+		return chrome.i18n.getMessage('shortcut_empty');
+
 	var s = [];
+
 	if (this._data.ctrlKey)
 		s.push('Ctrl');
 	if (this._data.altKey)
@@ -76,14 +95,17 @@ Shortcut.prototype.toString = function () {
 	if (this._data.metaKey)
 		s.push('Meta');
 	var key = this._data.keyIdentifier;
-	if (key.indexOf('U+') == 0) {
-		var code = parseInt(key.slice(2), 16); // unicode
-		if (code == 27)
-			s.push('Esc');
-		else
-			s.push(String.fromCharCode(code));
-	} else {
-		s.push(this._data.keyIdentifier);
+	if (key != undefined) {
+		if (key.indexOf('U+') == 0) {
+			var code = parseInt(key.slice(2), 16); // unicode
+			if (code == 27)
+				s.push('Esc');
+			else
+				s.push(String.fromCharCode(code));
+		} else {
+			s.push(this._data.keyIdentifier);
+		}
 	}
+
 	return s.join('+');
 }
