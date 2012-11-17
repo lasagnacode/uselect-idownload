@@ -62,18 +62,6 @@ var requestHandlers = {
 		}
 	},
 
-	'get-shortcut': function (request, sender, sendResponse) {
-		var data = null;
-		try {
-			var settings = JSON.parse(localStorage['settings']);
-			if (settings['shortcut_enable'])
-				data = settings['shortcut'];
-		} catch (x) {
-			/* void */
-		}
-		sendResponse(data);
-	},
-
 	'toggle-extension': function (request, sender, sendResponse) {
 		var idtab = request['idtab'];
 		if (idtab == null)

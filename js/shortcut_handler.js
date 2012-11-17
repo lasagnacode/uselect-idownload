@@ -53,7 +53,7 @@ function shortcut_handler(e) {
 		return;
 	}
 	if (shortcut.matches(e)) {
-		chrome.extension.sendRequest({'__req__': 'toggle-extension'});
+		chrome.extension.sendMessage({'__req__': 'toggle-extension'});
 		/* if the user has used a shortcut defined by the browser
 		   (i.e. Ctrl+A) we have to stop the browser to execute the relative
 		   action */
