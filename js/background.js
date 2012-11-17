@@ -36,29 +36,27 @@ function req_action_handler(request, sender, sendResponse) {
 		 */
 		chrome.windows.create({'url': urls});
 	} else {
-		if (action == 'download')
+		switch (action) {
+		case 'download':
 			chrome.tabs.create({
 				'url': 'chrome://downloads',
 				'selected': true,
 				'openerTabId': sender.tab.id,
-			});
-		urls.forEach(function (url) {
-			switch (action) {
-			case 'tabs':
+			}, sendResponse);
+			break;
+		case 'tabs':
+			urls.forEach(function (url) {
 				chrome.tabs.create({
 					'url': url,
 					'selected': false,
 					'openerTabId': sender.tab.id,
 				});
-				break;
-			case 'download':
-				chrome.experimental.downloads.download({
-					'url': url,
-				});
-				break;
-			}
-		});
+			});
+			break;
+		}
 	}
+	// The chrome.extension.onMessage listener must return true if you want to send a response after the listener returns
+	return true;
 }
 
 function req_toggle_handler(request, sender, sendResponse) {
@@ -82,9 +80,9 @@ function req_toggle_handler(request, sender, sendResponse) {
  */
 chrome.extension.onMessage.addListener(function (request, sender, sendResponse) {
 	if (request['__req__'] == 'action')
-		req_action_handler(request, sender, sendResponse);
+		return req_action_handler(request, sender, sendResponse);
 	else if (request['__req__'] == 'toggle-extension')
-		req_toggle_handler(request, sender, sendResponse);
+		return req_toggle_handler(request, sender, sendResponse);
 });
 
 chrome.browserAction.onClicked.addListener(function (tab) {
