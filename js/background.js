@@ -94,7 +94,7 @@ var requestHandlers = {
 /**
  * Demultiplex requests using the '__req__' property of the request object
  */
-chrome.extension.onRequest.addListener(function (request, sender, sendResponse) {
+chrome.extension.onMessage.addListener(function (request, sender, sendResponse) {
 	requestHandlers[request['__req__']](request, sender, sendResponse);
 });
 

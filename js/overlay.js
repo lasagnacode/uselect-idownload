@@ -414,7 +414,7 @@ function Overlay() {
 	statemachine.states['action-tabs'] = {
 		__enter__: function () {
 			var urls = selectedElementUrls(that._selectableElements);
-			chrome.extension.sendRequest({
+			chrome.extension.sendMessage({
 				'__req__'  : 'action',
 				'action': 'tabs',
 				'urls'  : urls,
@@ -428,7 +428,7 @@ function Overlay() {
 	statemachine.states['action-window'] = {
 		__enter__: function () {
 			var urls = selectedElementUrls(that._selectableElements);
-			chrome.extension.sendRequest({
+			chrome.extension.sendMessage({
 				'__req__'  : 'action',
 				'action': 'window',
 				'urls'  : urls,
@@ -442,7 +442,7 @@ function Overlay() {
 	statemachine.states['action-download'] = {
 		__enter__: function () {
 			var urls = selectedElementUrls(that._selectableElements);
-			chrome.extension.sendRequest({
+			chrome.extension.sendMessage({
 				'__req__'  : 'action',
 				'action': 'download',
 				'urls'  : urls,

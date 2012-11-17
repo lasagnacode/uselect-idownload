@@ -19,7 +19,8 @@
   },
 
   "background": {
-    "scripts": ["js/shortcut.js", "js/background.js"]
+    "scripts": ["js/shortcut.js", "js/background.js"],
+    "persistent": false
   },
 
   "content_scripts": [
