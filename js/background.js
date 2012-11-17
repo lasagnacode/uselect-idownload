@@ -1,8 +1,8 @@
 /*
  * uSelect iDownload
  *
- * Copyright © 2011 Alessandro Guido
- * Copyright © 2011 Marco Palumbo
+ * Copyright © 2011-2012 Alessandro Guido
+ * Copyright © 2011-2012 Marco Palumbo
  *
  * This file is part of uSelect iDownload.
  *
@@ -70,11 +70,11 @@ var requestHandlers = {
 			chrome.tabs.executeScript(idtab, {file: 'js/statemachine.js'}, function () {
 				chrome.tabs.executeScript(idtab, {file: 'js/overlay.js'}, function () {
 					mytabs[idtab] = true;
-					chrome.tabs.sendRequest(idtab, 'toggle');
+					chrome.tabs.sendMessage(idtab, 'toggle');
 				});
 			});
 		} else {
-			chrome.tabs.sendRequest(idtab, 'toggle');
+			chrome.tabs.sendMessage(idtab, 'toggle');
 		}
 	},
 };
