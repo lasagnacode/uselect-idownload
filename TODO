@@ -1,2 +1,3 @@
 - Use a proper Download extension API when available
+- Use infobars when will be available
 - Find a proper way to calculate link rectangles (i.e. <img> inside <a>)
