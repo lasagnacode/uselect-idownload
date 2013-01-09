@@ -1,8 +1,8 @@
 /*
  * uSelect iDownload
  *
- * Copyright © 2011-2012 Alessandro Guido
- * Copyright © 2011-2012 Marco Palumbo
+ * Copyright © 2011-2013 Alessandro Guido
+ * Copyright © 2011-2013 Marco Palumbo
  *
  * This file is part of uSelect iDownload.
  *
@@ -21,6 +21,25 @@
  */
 
 (function () {
+
+/* true if scripts have been injected */
+function toggle_extension() {
+	if (window.Overlay !== undefined) {
+		Overlay.toggle();
+		return;
+	}
+	chrome.extension.sendMessage({__req__: 'inject'}, function () {
+		Overlay.toggle();
+	});
+}
+
+chrome.extension.onMessage.addListener(function (msg) {
+	switch (msg) {
+	case 'toggle':
+		toggle_extension();
+		break;
+	}
+});
 
 var shortcut = new Shortcut();
 var handler_installed = false;
@@ -53,7 +72,7 @@ function shortcut_handler(e) {
 		return;
 	}
 	if (shortcut.matches(e)) {
-		chrome.extension.sendMessage({'__req__': 'toggle-extension'});
+		toggle_extension();
 		/* if the user has used a shortcut defined by the browser
 		   (i.e. Ctrl+A) we have to stop the browser to execute the relative
 		   action */
@@ -64,7 +83,6 @@ function shortcut_handler(e) {
 
 chrome.storage.onChanged.addListener(storage_changed);
 chrome.storage.sync.get('shortcut', function (items) {
-
 	shortcut.set(items['shortcut']);
 	if (!shortcut.isEmpty()) {
 		window.addEventListener('keydown', shortcut_handler, true);

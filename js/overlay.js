@@ -1,8 +1,8 @@
 /*
  * uSelect iDownload
  *
- * Copyright © 2011-2012 Alessandro Guido
- * Copyright © 2011-2012 Marco Palumbo
+ * Copyright © 2011-2013 Alessandro Guido
+ * Copyright © 2011-2013 Marco Palumbo
  *
  * This file is part of uSelect iDownload.
  *
@@ -621,13 +621,11 @@ function downloadSelectedElements(elements) {
 	}
 }
 
-chrome.extension.onMessage.addListener(function (request, sender, sendResponse) {
-	if (request != 'toggle')
-		return;
+Overlay.toggle = function () {
 	if (window._uselectidownload === undefined) {
 		window._uselectidownload = new Overlay();
 		window._uselectidownload.sm.start('load');
 	} else {
 		window._uselectidownload.sm.fireEvent('req_exit');
 	}
-});
+}

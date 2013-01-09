@@ -1,8 +1,8 @@
 /*
  * uSelect iDownload
  *
- * Copyright © 2011-2012 Alessandro Guido
- * Copyright © 2011-2012 Marco Palumbo
+ * Copyright © 2011-2013 Alessandro Guido
+ * Copyright © 2011-2013 Marco Palumbo
  *
  * This file is part of uSelect iDownload.
  *
@@ -19,9 +19,6 @@
  * You should have received a copy of the GNU General Public License
  * along with uSelect iDownload.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* keep track of tabs that have already loaded extension files */
-var mytabs = {};
 
 function req_action_handler(request, sender, sendResponse) {
 	var urls = request['urls'];
@@ -59,32 +56,31 @@ function req_action_handler(request, sender, sendResponse) {
 	return true;
 }
 
-function req_toggle_handler(request, sender, sendResponse) {
-	var idtab = request['idtab'];
-	if (idtab == null)
-		idtab = sender.tab.id;
-	if (!mytabs.hasOwnProperty(idtab)) {
-		chrome.tabs.executeScript(idtab, {file: 'js/statemachine.js'}, function () {
-			chrome.tabs.executeScript(idtab, {file: 'js/overlay.js'}, function () {
-				mytabs[idtab] = true;
-				chrome.tabs.sendMessage(idtab, 'toggle');
-			});
+function req_inject_handler(request, sender, sendResponse) {
+	chrome.tabs.executeScript(sender.tab.id, {file: 'js/statemachine.js'}, function () {
+		chrome.tabs.executeScript(sender.tab.id, {file: 'js/overlay.js'}, function () {
+			if (sendResponse != null)
+				sendResponse();
 		});
-	} else {
-		chrome.tabs.sendMessage(idtab, 'toggle');
-	}
+	});
+	// The chrome.extension.onMessage listener must return true if you want to send a response after the listener returns
+	return true;
 }
 
 /**
  * Demultiplex requests using the '__req__' property of the request object
  */
 chrome.extension.onMessage.addListener(function (request, sender, sendResponse) {
-	if (request['__req__'] == 'action')
+	switch (request['__req__']) {
+	case 'inject':
+		return req_inject_handler(request, sender, sendResponse);
+	case 'action':
 		return req_action_handler(request, sender, sendResponse);
-	else if (request['__req__'] == 'toggle-extension')
-		return req_toggle_handler(request, sender, sendResponse);
+	default:
+		console.log('Unknown message');
+	}
 });
 
 chrome.browserAction.onClicked.addListener(function (tab) {
-	req_toggle_handler({'idtab': tab.id}, null, null);
+	chrome.tabs.sendMessage(tab.id, 'toggle');
 });
