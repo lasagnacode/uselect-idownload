@@ -20,6 +20,10 @@
  * along with uSelect iDownload.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var uSelect_iDownload;
+
+(function () {
+
 CSS = {
 	ids: {
 		glass:      'ileabdhfjmgaognikmjgmhhkjffggejc-glass',
@@ -307,7 +311,7 @@ function Overlay() {
 		},
 
 		__exit__: function () {
-			delete window._uselectidownload;
+			uSelect_iDownload.instance = null;
 		},
 
 		exit_done: null,
@@ -621,11 +625,16 @@ function downloadSelectedElements(elements) {
 	}
 }
 
-Overlay.toggle = function () {
-	if (window._uselectidownload === undefined) {
-		window._uselectidownload = new Overlay();
-		window._uselectidownload.sm.start('load');
-	} else {
-		window._uselectidownload.sm.fireEvent('req_exit');
+uSelect_iDownload = {
+	instance: null,
+	toggle: function () {
+		if (uSelect_iDownload.instance === null) {
+			uSelect_iDownload.instance = new Overlay();
+			uSelect_iDownload.instance.sm.start('load');
+		} else {
+			uSelect_iDownload.instance.sm.fireEvent('req_exit');
+		}
 	}
 }
+
+})();

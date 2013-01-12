@@ -24,12 +24,12 @@
 
 /* true if scripts have been injected */
 function toggle_extension() {
-	if (window.Overlay !== undefined) {
-		Overlay.toggle();
+	if (window.uSelect_iDownload !== undefined) {
+		uSelect_iDownload.toggle();
 		return;
 	}
 	chrome.extension.sendMessage({__req__: 'inject'}, function () {
-		Overlay.toggle();
+		uSelect_iDownload.toggle();
 	});
 }
 
