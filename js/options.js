@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	form = document.forms.sc_form;
 
 	form.shortcut.addEventListener('click', function () {
+		form.shortcut.innerHTML = 'Please set a shortcut...';
 		document.addEventListener('keydown', catch_shortcut, true);
 	});
 

@@ -12,7 +12,7 @@ body {
 }
 
 .header {
-  width: 400px;
+  width: 450px;
   font-weight: bold;
   margin-left: auto;
   margin-right: auto;
@@ -67,7 +67,7 @@ h1 {
 }
 
 label {
-  display: block;
+  display: inline-block;
   margin: 5px;
 }
 
@@ -75,4 +75,33 @@ fieldset {
   border: 1px solid #666;
   border-radius: 3px;
   box-shadow: 1px 1px 0 white;
+}
+
+button {
+  border: 1px solid gray;
+  border-radius: 5px;
+  vertical-align: middle;
+  background-color: transparent;
+  height: 2em;
+  line-height: 2em;
+}
+
+button img {
+  vertical-align: middle;
+}
+
+label.with_clear {
+  margin-right: 0;
+  display: inline-block;
+}
+
+label.with_clear button {
+  margin-right: 0;
+  border-radius: 5px 0 0 5px;
+}
+
+button.clear {
+  border-left: none;
+  border-radius: 0 5px 5px 0;
+  margin-left: 0;
 }
