@@ -55,6 +55,7 @@ for pat in conf['js']:
 			'java', '-jar', jscomp,
 			'--compilation_level', 'SIMPLE_OPTIMIZATIONS',
 			'--js_output_file', outfile,
+			'--jscomp_off', 'internetExplorerChecks',
 			jsfile
 		])
 		os.rename(outfile, jsfile)
