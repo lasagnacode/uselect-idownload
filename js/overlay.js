@@ -445,13 +445,13 @@ function Overlay() {
 /******************************************************************************/
 	statemachine.states['action-download'] = {
 		__enter__: function () {
+			var urls = selectedElementUrls(that._selectableElements);
 			chrome.extension.sendMessage({
 				'__req__': 'action',
 				'action' : 'download',
-			}, function () {
-				downloadSelectedElements(that._selectableElements);
-				that.sm.fireEvent('done');
+				'urls'   :  urls,
 			});
+			that.sm.fireEvent('done');
 		},
 
 		done: 'exit',
@@ -592,37 +592,6 @@ function selectedElementUrls(elements) {
 			tmp[el.href] = null;
 	});
 	return Object.keys(tmp);
-}
-
-/* XXX
- * remove when chrome.downloads API hits stable
- */
-function downloadSelectedElements(elements) {
-	var tmp = {};
-	for (var i = 0; i < elements.length; ++i) {
-		var el = elements[i];
-		if (!el.href || !el._private || !el._private.selected || tmp.hasOwnProperty(el.href))
-			continue;
-		tmp[el.href] = null;
-		var e = document.createEvent('MouseEvent');
-		e.initMouseEvent('click', // type
-			false, // canBubble
-			false, // cancelable
-			window, // view
-			1, // detail (number of clicks)
-			0, // screenX
-			0, // screenY
-			0, // clientX
-			0, // clientY
-			false, // ctrlKey
-			true, // altKey
-			false, // shiftKey
-			false, // metaKey
-			0, // button
-			null // relatedTarget
-		);
-		el.dispatchEvent(e);
-	}
 }
 
 uSelect_iDownload = {

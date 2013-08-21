@@ -33,6 +33,6 @@
   "default_locale": "en",
   "options_page": "options.html",
   "permissions": [
-    "<all_urls>", "tabs", "storage"
+    "<all_urls>", "downloads", "tabs", "storage"
   ]
 }

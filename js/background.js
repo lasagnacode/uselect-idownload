@@ -35,11 +35,16 @@ function req_action_handler(request, sender, sendResponse) {
 	} else {
 		switch (action) {
 		case 'download':
+			urls.foreEach(function (url) {
+				chrome.downloads.download({
+					'url': url,
+				});
+			});
 			chrome.tabs.create({
 				'url': 'chrome://downloads',
 				'selected': true,
 				'openerTabId': sender.tab.id,
-			}, sendResponse);
+			});
 			break;
 		case 'tabs':
 			urls.forEach(function (url) {
