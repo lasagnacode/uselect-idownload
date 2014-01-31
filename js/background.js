@@ -35,7 +35,8 @@ function req_action_handler(request, sender, sendResponse) {
 	} else {
 		switch (action) {
 		case 'download':
-			urls.foreEach(function (url) {
+			urls.forEach(function (url) {
+				console.log(url);
 				chrome.downloads.download({
 					'url': url,
 				});

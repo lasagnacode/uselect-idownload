@@ -27,11 +27,14 @@
     {
       "matches": ["<all_urls>"],
       "css": ["overlay.css"],
-      "js": ["js/shortcut.js", "js/content_script.js"]
+      "js": ["js/content_script.js"]
     }
   ],
+
   "default_locale": "en",
+
   "options_page": "options.html",
+
   "permissions": [
     "<all_urls>", "downloads", "tabs", "storage"
   ]
