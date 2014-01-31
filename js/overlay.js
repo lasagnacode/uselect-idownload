@@ -63,19 +63,7 @@ function Overlay() {
 
 	var that = this;
 
-	/*
-	 * How the overlay is structured
-	 *
-	 * The overlay works with a stack of layers
-	 * - At the bottom there is the page
-	 * - Then there is the dark overlay ("overlay")
-	 * - Then there are link which have been selected
-	 * - then there is a div containing usage instructions ("help")
-	 * - then there is a transparent div ("glass")
-	 * - then there is the selection rectangle div
-	 */
-
-	/* the dark overlay that covers the page */
+	/* contains all things in the extension and covers 100% of the page */
 	var overlay = document.createElement('div');
 	overlay.id = CSS.ids.overlay;
 
@@ -90,6 +78,8 @@ function Overlay() {
 	var helpDiv = document.createElement('div');
 	helpDiv.id = CSS.ids.help;
 	helpDiv.innerHTML = chrome.i18n.getMessage('usage');
+
+	/* These shouldn't be needed */
 	helpDiv.onmouseover = function () { helpDiv.classList.add(CSS.classes.invisible); }
 	helpDiv.onmouseout = function () { helpDiv.classList.remove(CSS.classes.invisible); }
 
@@ -100,6 +90,7 @@ function Overlay() {
 
 	var updateMousePosition = function (e) {
 		/* coordinates from the top-left corner of the viewport */
+		/* this function is very hot, keep as fast as possible */
 		that._curpos.x = e.clientX;
 		that._curpos.y = e.clientY;
 	};
@@ -251,14 +242,26 @@ function Overlay() {
 	document.body.addEventListener('mousedown', handlers.mousedown, true);
 	document.body.addEventListener('mouseup', handlers.mouseup, true);
 
+	/*
+	 * How the overlay is structured
+	 *
+	 * The overlay works with a stack of layers
+	 * body
+	 *   - div#overlay
+	 *     - div#glass
+	 *     - div#help
+	 *     - div#selection-rectangle
+	 */
+	overlay.appendChild(helpDiv);
+	overlay.appendChild(glass);
+
+
 	var statemachine = new StateMachine();
 /******************************************************************************/
 	statemachine.states['load'] = {
 		__enter__: function () {
 			document.documentElement.classList.add(CSS.classes.loading);
 			document.body.appendChild(overlay);
-			document.body.appendChild(glass);
-			document.body.appendChild(helpDiv);
 
 			overlay.addEventListener('webkitTransitionEnd', function () {
 				overlay.removeEventListener('webkitTransitionEnd', arguments.callee);
@@ -301,8 +304,6 @@ function Overlay() {
 
 			overlay.addEventListener('webkitTransitionEnd', function () {
 				overlay.removeEventListener('webkitTransitionEnd', arguments.callee);
-				document.body.removeChild(helpDiv);
-				document.body.removeChild(glass);
 				document.body.removeChild(overlay);
 				document.documentElement.classList.remove(CSS.classes.exiting);
 				that.sm.fireEvent('exit_done');
